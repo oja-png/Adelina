@@ -1,0 +1,219 @@
+<!--
+Adelina Interactive Math — single-file starter for GitHub Pages
+How to use:
+1) Create a new GitHub repo (e.g., adelina-math). Add this file as index.html at the root.
+2) Settings → Pages → Deploy from branch → main, /root. Wait 1–2 minutes.
+3) Edit/extend exercises inside the JSON below.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adelina — Interactive Math Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0f172a; --panel:#111827; --ink:#e5e7eb; --muted:#94a3b8; --accent:#22d3ee; --ok:#22c55e; --warn:#f59e0b; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1024,#0f172a);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:980px;margin:40px auto;padding:0 16px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:clamp(22px,4vw,34px);margin:0;font-weight:800;letter-spacing:.2px}
+    .tag{font-size:12px;color:var(--muted);border:1px solid #1f2937;padding:4px 8px;border-radius:999px}
+    .panel{background:rgba(17,24,39,.7);backdrop-filter: blur(8px);border:1px solid #1f2937;border-radius:16px;padding:16px}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    select,button{background:#0b1220;color:var(--ink);border:1px solid #1f2937;border-radius:10px;padding:10px 12px;font-weight:600}
+    button.primary{background:var(--accent);color:#001018;border-color:transparent}
+    button.ghost{background:transparent}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:820px){.grid{grid-template-columns:1.2fr .8fr}}
+    .card{border:1px solid #1f2937;border-radius:16px;background:#0b1220;padding:16px}
+    .q{font-size:20px;font-weight:600}
+    .meta{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+    .badge{background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:2px 8px}
+    .solution{margin-top:10px;border-left:3px solid var(--accent);padding:10px 12px;background:#061018;border-radius:8px}
+    .hidden{display:none}
+    .timer{font-variant-numeric:tabular-nums}
+    .streak{font-weight:800;color:var(--ok)}
+    .fail{color:#f87171}
+    .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .muted{color:var(--muted)}
+    footer{margin:26px 0;color:var(--muted);font-size:12px}
+    .kbd{padding:2px 6px;border:1px solid #1f2937;border-bottom-width:2px;border-radius:6px;background:#0f172a}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Adelina — Interactive Math Training</h1>
+      <div class="tag">rapid arithmetic • numerical reasoning • probability</div>
+    </div>
+    <div class="meta"><span>Timer:</span><span class="timer" id="timer">00:00</span></div>
+  </header>
+
+  <div class="panel controls" role="group" aria-label="controls">
+    <select id="track">
+      <option value="mental">Mental Arithmetic</option>
+      <option value="numerical">Numerical Reasoning</option>
+      <option value="prob">Quick Probability</option>
+    </select>
+    <select id="mode">
+      <option value="practice">Practice (untimed)</option>
+      <option value="sprint">Sprint (10 Q / 2 min)</option>
+      <option value="custom">Custom…</option>
+    </select>
+    <button class="primary" id="startBtn">Start session</button>
+    <button class="ghost" id="revealAllBtn">Reveal All</button>
+    <button class="ghost" id="hideAllBtn">Hide All</button>
+  </div>
+
+  <div class="grid" style="margin-top:14px">
+    <section class="card" id="session">
+      <div class="muted">No session yet — pick a track and click <b>Start session</b>.</div>
+    </section>
+    <aside class="card">
+      <h3 style="margin-top:0">Tips for speed</h3>
+      <ul class="muted">
+        <li><b>Make anchors:</b> round to 10/100/1000 then compensate.</li>
+        <li><b>Transfer:</b> move small amounts to form round numbers (e.g., 89+36 → 100+25).</li>
+        <li><b>Midpoint symmetry:</b> (m−d)+(m+d)=2m.</li>
+        <li><b>Pairs:</b> regroup to sum to 100 (25+75, 62+38, …).</li>
+        <li><b>Percent:</b> 25% = ÷4, 12.5% = ÷8, 15% = 10%+5%.</li>
+      </ul>
+      <div class="muted" id="stats"></div>
+    </aside>
+  </div>
+
+  <footer>
+    Built for Adelina. Keyboard: <span class="kbd">N</span> next, <span class="kbd">S</span> show/hide, <span class="kbd">R</span> reveal all. Progress saved locally.
+  </footer>
+</div>
+
+<script>
+// ——— Exercise bank ———
+const BANK = {
+  mental: [
+    { id:'m1', q:'978 − 25', a:'953', w:'Anchor 1000: (1000−25)−(1000−978)=975−22=953.' },
+    { id:'m2', q:'398 + 57', a:'455', w:'(400−2)+57=400+55=455.' },
+    { id:'m3', q:'47 + 53', a:'100', w:'Midpoint 50: (50−3)+(50+3)=100.' },
+    { id:'m4', q:'1001 − 497', a:'504', w:'(1000−497)+1=503+1=504.' },
+    { id:'m5', q:'28+72+35+65', a:'200', w:'Pairs to 100: (28+72)+(35+65)=200.' },
+    { id:'m6', q:'19.8 + 3.7', a:'23.5', w:'(20−0.2)+3.7 = 23.5.' },
+    { id:'m7', q:'15% of 240', a:'36', w:'10% is 24; 5% is 12; total 36.' },
+    { id:'m8', q:'125 + 375', a:'500', w:'(100+25)+(300+75)=500.' },
+  ],
+  numerical: [
+    { id:'n1', q:'A price increases by 15% then decreases by 15%. Net change?', a:'−2.25%', w:'(1.15×0.85−1)=−0.0225.' },
+    { id:'n2', q:'Average of 38, 41, 43, 48?', a:'42.5', w:'Sum 170, ÷4 = 42.5.' },
+    { id:'n3', q:'Ratio 3:5 scaled to total 96?', a:'36 and 60', w:'8 parts ⇒ 12 each ⇒ 3×12=36, 5×12=60.' },
+    { id:'n4', q:'Speed: 120 km in 1h 30m. km/h?', a:'80 km/h', w:'120 ÷ 1.5 = 80.' },
+    { id:'n5', q:'Compound: start 200, +10% then +10%. Final?', a:'242', w:'200×1.1×1.1=242.' },
+  ],
+  prob: [
+    { id:'p1', q:'Flip a fair coin 4 times. P(exactly 2 heads)?', a:'6/16 = 3/8', w:'C(4,2)/16.' },
+    { id:'p2', q:'Roll a die. P(prime)?', a:'3/6 = 1/2', w:'{2,3,5}.' },
+    { id:'p3', q:'Two draws without replacement from {A,A,B}. P(two A)?', a:'1/3', w:'(2/3)×(1/2)=1/3.' },
+    { id:'p4', q:'Box with 5 red, 3 blue. Draw 2 with replacement. P(2 red)?', a:'(5/8)^2 = 25/64', w:'Independence with replacement.' },
+  ]
+};
+
+// ——— State ———
+let state = { track:'mental', mode:'practice', started:false, t0:null, streak:0 };
+
+const $ = sel => document.querySelector(sel);
+const timerEl = $('#timer');
+const sessionEl = $('#session');
+const statsEl = $('#stats');
+
+// ——— Timer ———
+let tickHandle=null;
+function startTimer(){ state.t0 = Date.now(); tickHandle = setInterval(()=>{
+  const s = Math.floor((Date.now()-state.t0)/1000);
+  const m = String(Math.floor(s/60)).padStart(2,'0');
+  const r = String(s%60).padStart(2,'0');
+  timerEl.textContent = `${m}:${r}`; }, 250);
+}
+function stopTimer(){ if(tickHandle){clearInterval(tickHandle); tickHandle=null;} }
+
+// ——— Rendering ———
+function renderSession(items){
+  if(!items || !items.length){ sessionEl.innerHTML = '<div class="muted">No questions.</div>'; return; }
+  const cards = items.map(it => cardHTML(it)).join('');
+  sessionEl.innerHTML = cards;
+}
+function cardHTML(it){
+  const saved = loadResult(it.id);
+  const solved = saved?.ok;
+  return `<div class="card" id="c-${it.id}">
+    <div class="q">${it.q}</div>
+    <div class="meta"><span class="badge">ID ${it.id}</span><span class="badge">Track: ${state.track}</span></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input id="in-${it.id}" type="text" inputmode="decimal" placeholder="Your answer" style="flex:1;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--ink)" />
+      <button onclick="check('${it.id}')">Check</button>
+      <button class="ghost" onclick="toggleSol('${it.id}')">Show/Hide</button>
+    </div>
+    <div id="sol-${it.id}" class="solution hidden"><b>Answer:</b> ${it.a}<br><span class="muted">${it.w||''}</span></div>
+    <div class="muted" id="msg-${it.id}"></div>
+  </div>`;
+}
+
+function toggleSol(id){ const el = document.getElementById('sol-'+id); el.classList.toggle('hidden'); }
+function revealAll(){ document.querySelectorAll('.solution').forEach(el=>el.classList.remove('hidden')); }
+function hideAll(){ document.querySelectorAll('.solution').forEach(el=>el.classList.add('hidden')); }
+
+// ——— Checking & persistence ———
+function normalize(x){ return String(x).replace(/\s+/g,'').replace(/,/g,'.').toLowerCase(); }
+function check(id){
+  const it = allItems().find(z=>z.id===id);
+  const inp = document.getElementById('in-'+id);
+  const msg = document.getElementById('msg-'+id);
+  const user = normalize(inp.value);
+  const ans = normalize(it.a);
+  const ok = user === ans;
+  msg.innerHTML = ok ? `<span class="streak">Correct ✓</span>` : `<span class="fail">Not yet. Try again.</span>`;
+  saveResult(id,{ok,ts:Date.now(),user});
+  updateStats();
+}
+
+function keybinds(e){
+  if(e.key==='r' || e.key==='R'){revealAll();}
+  if(e.key==='s' || e.key==='S'){document.querySelectorAll('.solution').forEach(el=>el.classList.toggle('hidden'));}
+  if(e.key==='n' || e.key==='N'){startSession();}
+}
+window.addEventListener('keydown', keybinds);
+
+function saveResult(id, obj){ const k = 'adelina-results'; const all = JSON.parse(localStorage.getItem(k)||'{}'); all[id]=obj; localStorage.setItem(k, JSON.stringify(all)); }
+function loadResult(id){ const k = 'adelina-results'; const all = JSON.parse(localStorage.getItem(k)||'{}'); return all[id]; }
+function allItems(){ return BANK[state.track]; }
+
+function updateStats(){
+  const all = allItems();
+  const k = 'adelina-results'; const store = JSON.parse(localStorage.getItem(k)||'{}');
+  const done = all.filter(it=>store[it.id]?.ok).length;
+  statsEl.innerHTML = `${done}/${all.length} correct in <span class="timer">${timerEl.textContent}</span>`;
+}
+
+// ——— Session control ———
+function startSession(){
+  state.track = document.getElementById('track').value;
+  state.mode = document.getElementById('mode').value;
+  const items = allItems();
+  renderSession(items);
+  stopTimer(); if(state.mode!=='practice') startTimer(); else {timerEl.textContent='00:00'}
+  updateStats();
+}
+
+// Buttons
+ document.getElementById('startBtn').addEventListener('click', startSession);
+ document.getElementById('revealAllBtn').addEventListener('click', revealAll);
+ document.getElementById('hideAllBtn').addEventListener('click', hideAll);
+
+// First render
+renderSession([]);
+</script>
+</body>
+</html>
