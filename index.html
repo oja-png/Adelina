@@ -1,6 +1,3 @@
-<!--
-Adelina Interactive Math — extended with "Special Multiplications" track
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +32,6 @@ Adelina Interactive Math — extended with "Special Multiplications" track
     .timer{font-variant-numeric:tabular-nums}
     .streak{font-weight:800;color:var(--ok)}
     .fail{color:#f87171}
-    .list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
     .muted{color:var(--muted)}
     footer{margin:26px 0;color:var(--muted);font-size:12px}
     .kbd{padding:2px 6px;border:1px solid #1f2937;border-bottom-width:2px;border-radius:6px;background:#0f172a}
@@ -46,7 +42,7 @@ Adelina Interactive Math — extended with "Special Multiplications" track
   <header>
     <div>
       <h1>Adelina — Interactive Math Training</h1>
-      <div class="tag">rapid arithmetic • numerical reasoning • probability • special tricks</div>
+      <div class="tag">arithmetic • reasoning • probability • special tricks</div>
     </div>
     <div class="meta"><span>Timer:</span><span class="timer" id="timer">00:00</span></div>
   </header>
@@ -78,7 +74,7 @@ Adelina Interactive Math — extended with "Special Multiplications" track
         <li><b>Transfer:</b> move small amounts to form round numbers (e.g., 89+36 → 100+25).</li>
         <li><b>Midpoint symmetry:</b> (m−d)+(m+d)=2m.</li>
         <li><b>Pairs:</b> regroup to sum to 100 (25+75, 62+38, …).</li>
-        <li><b>Double digits:</b> Multiplying by 22 = double N, then double again with a shift (×2 and ×20).</li>
+        <li><b>Double digits:</b> e.g. ×22 = double N + double N shifted (×2 and ×20).</li>
       </ul>
       <div class="muted" id="stats"></div>
     </aside>
@@ -90,7 +86,6 @@ Adelina Interactive Math — extended with "Special Multiplications" track
 </div>
 
 <script>
-// ——— Exercise bank ———
 const BANK = {
   mental: [
     { id:'m1', q:'978 − 25', a:'953', w:'Anchor 1000: (1000−25)−(1000−978)=975−22=953.' },
@@ -100,119 +95,58 @@ const BANK = {
     { id:'m5', q:'28+72+35+65', a:'200', w:'Pairs to 100: (28+72)+(35+65)=200.' },
     { id:'m6', q:'19.8 + 3.7', a:'23.5', w:'(20−0.2)+3.7 = 23.5.' },
     { id:'m7', q:'15% of 240', a:'36', w:'10% is 24; 5% is 12; total 36.' },
-    { id:'m8', q:'125 + 375', a:'500', w:'(100+25)+(300+75)=500.' },
+    { id:'m8', q:'125 + 375', a:'500', w:'(100+25)+(300+75)=500.' }
   ],
   numerical: [
-    { id:'n1', q:'A price increases by 15% then decreases by 15%. Net change?', a:'−2.25%', w:'(1.15×0.85−1)=−0.0225.' },
-    { id:'n2', q:'Average of 38, 41, 43, 48?', a:'42.5', w:'Sum 170, ÷4 = 42.5.' },
+    { id:'n1', q:'Price +15% then −15%. Net change?', a:'−2.25%', w:'(1.15×0.85−1)=−0.0225.' },
+    { id:'n2', q:'Average of 38, 41, 43, 48?', a:'42.5', w:'Sum 170, ÷4=42.5.' },
     { id:'n3', q:'Ratio 3:5 scaled to total 96?', a:'36 and 60', w:'8 parts ⇒ 12 each ⇒ 3×12=36, 5×12=60.' },
-    { id:'n4', q:'Speed: 120 km in 1h 30m. km/h?', a:'80 km/h', w:'120 ÷ 1.5 = 80.' },
-    { id:'n5', q:'Compound: start 200, +10% then +10%. Final?', a:'242', w:'200×1.1×1.1=242.' },
+    { id:'n4', q:'120 km in 1h30. Speed?', a:'80 km/h', w:'120 ÷ 1.5=80.' },
+    { id:'n5', q:'Start 200, +10% then +10%. Final?', a:'242', w:'200×1.1×1.1=242.' }
   ],
   prob: [
-    { id:'p1', q:'Flip a fair coin 4 times. P(exactly 2 heads)?', a:'6/16 = 3/8', w:'C(4,2)/16.' },
-    { id:'p2', q:'Roll a die. P(prime)?', a:'3/6 = 1/2', w:'{2,3,5}.' },
-    { id:'p3', q:'Two draws without replacement from {A,A,B}. P(two A)?', a:'1/3', w:'(2/3)×(1/2)=1/3.' },
-    { id:'p4', q:'Box with 5 red, 3 blue. Draw 2 with replacement. P(2 red)?', a:'(5/8)^2 = 25/64', w:'Independence with replacement.' },
+    { id:'p1', q:'Coin 4 flips. P(2 heads)?', a:'3/8', w:'C(4,2)/16.' },
+    { id:'p2', q:'Die roll. P(prime)?', a:'1/2', w:'{2,3,5}.' },
+    { id:'p3', q:'From {A,A,B} without replacement, P(two A)?', a:'1/3', w:'(2/3)×(1/2)=1/3.' },
+    { id:'p4', q:'Box 5R,3B with replacement. P(2 red)?', a:'25/64', w:'(5/8)^2.' }
   ],
   special: [
-    { id:'s1', q:'34 × 22', a:'748', w:'Double 34 = 68. Then shift (×10): 680. Total 680+68=748.' },
-    { id:'s2', q:'27 × 33', a:'891', w:'Triple 27 = 81. Then shift (×10): 810. Total 891.' },
-    { id:'s3', q:'56 × 44', a:'2464', w:'Quadruple 56 = 224. Then shift (×10): 2240. Total 2464.' },
-    { id:'s4', q:'99 × 77', a:'7623', w:'77×(100−1)=7700−77=7623 (or double trick ×7 with shift).'},
+    { id:'s1', q:'34 × 22', a:'748', w:'Double 34=68. Shift (×10): 680. Total=748.' },
+    { id:'s2', q:'27 × 33', a:'891', w:'Triple 27=81. Shift (×10): 810. Total=891.' },
+    { id:'s3', q:'56 × 44', a:'2464', w:'Quadruple 56=224. Shift (×10): 2240. Total=2464.' },
+    { id:'s4', q:'99 × 77', a:'7623', w:'77×(100−1)=7700−77=7623.' }
   ]
 };
 
-// ——— State ———
-let state = { track:'mental', mode:'practice', started:false, t0:null, streak:0 };
+let state = { track:'mental', mode:'practice', t0:null };
+const $ = s => document.querySelector(s);
+const timerEl=$('#timer'), sessionEl=$('#session'), statsEl=$('#stats');
+let tick=null;
 
-const $ = sel => document.querySelector(sel);
-const timerEl = $('#timer');
-const sessionEl = $('#session');
-const statsEl = $('#stats');
+function startTimer(){ state.t0=Date.now(); tick=setInterval(()=>{const s=Math.floor((Date.now()-state.t0)/1000);timerEl.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;},250);}
+function stopTimer(){ if(tick){clearInterval(tick);tick=null;} }
 
-// ——— Timer ———
-let tickHandle=null;
-function startTimer(){ state.t0 = Date.now(); tickHandle = setInterval(()=>{
-  const s = Math.floor((Date.now()-state.t0)/1000);
-  const m = String(Math.floor(s/60)).padStart(2,'0');
-  const r = String(s%60).padStart(2,'0');
-  timerEl.textContent = `${m}:${r}`; }, 250);
-}
-function stopTimer(){ if(tickHandle){clearInterval(tickHandle); tickHandle=null;} }
+function renderSession(items){sessionEl.innerHTML=items.map(it=>card(it)).join('');}
+function card(it){return `<div class="card"><div class="q">${it.q}</div>
+<div class="meta"><span class="badge">${state.track}</span></div>
+<div style="display:flex;gap:8px;margin-top:10px">
+<input id="in-${it.id}" type="text" placeholder="Your answer" style="flex:1;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--ink)" />
+<button onclick="check('${it.id}')">Check</button>
+<button class="ghost" onclick="toggleSol('${it.id}')">Show/Hide</button></div>
+<div id="sol-${it.id}" class="solution hidden"><b>Answer:</b> ${it.a}<br><span class="muted">${it.w}</span></div>
+<div class="muted" id="msg-${it.id}"></div></div>`;}
 
-// ——— Rendering ———
-function renderSession(items){
-  if(!items || !items.length){ sessionEl.innerHTML = '<div class="muted">No questions.</div>'; return; }
-  const cards = items.map(it => cardHTML(it)).join('');
-  sessionEl.innerHTML = cards;
-}
-function cardHTML(it){
-  return `<div class="card" id="c-${it.id}">
-    <div class="q">${it.q}</div>
-    <div class="meta"><span class="badge">ID ${it.id}</span><span class="badge">Track: ${state.track}</span></div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <input id="in-${it.id}" type="text" inputmode="decimal" placeholder="Your answer" style="flex:1;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--ink)" />
-      <button onclick="check('${it.id}')">Check</button>
-      <button class="ghost" onclick="toggleSol('${it.id}')">Show/Hide</button>
-    </div>
-    <div id="sol-${it.id}" class="solution hidden"><b>Answer:</b> ${it.a}<br><span class="muted">${it.w||''}</span></div>
-    <div class="muted" id="msg-${it.id}"></div>
-  </div>`;
-}
+function toggleSol(id){document.getElementById('sol-'+id).classList.toggle('hidden');}
+function revealAll(){document.querySelectorAll('.solution').forEach(e=>e.classList.remove('hidden'));}
+function hideAll(){document.querySelectorAll('.solution').forEach(e=>e.classList.add('hidden'));}
+function check(id){const it=BANK[state.track].find(z=>z.id===id), inp=$('#in-'+id), msg=$('#msg-'+id);msg.innerHTML=(inp.value.trim()==it.a)?'<span class="streak">Correct ✓</span>':'<span class="fail">Not yet</span>';updateStats();}
+function updateStats(){statsEl.textContent='';}
 
-function toggleSol(id){ const el = document.getElementById('sol-'+id); el.classList.toggle('hidden'); }
-function revealAll(){ document.querySelectorAll('.solution').forEach(el=>el.classList.remove('hidden')); }
-function hideAll(){ document.querySelectorAll('.solution').forEach(el=>el.classList.add('hidden')); }
+function startSession(){state.track=$('#track').value;state.mode=$('#mode').value;renderSession(BANK[state.track]);stopTimer();if(state.mode!=='practice')startTimer();else timerEl.textContent='00:00';}
 
-// ——— Checking & persistence ———
-function normalize(x){ return String(x).replace(/\s+/g,'').replace(/,/g,'.').toLowerCase(); }
-function check(id){
-  const it = allItems().find(z=>z.id===id);
-  const inp = document.getElementById('in-'+id);
-  const msg = document.getElementById('msg-'+id);
-  const user = normalize(inp.value);
-  const ans = normalize(it.a);
-  const ok = user === ans;
-  msg.innerHTML = ok ? `<span class="streak">Correct ✓</span>` : `<span class="fail">Not yet. Try again.</span>`;
-  saveResult(id,{ok,ts:Date.now(),user});
-  updateStats();
-}
-
-function keybinds(e){
-  if(e.key==='r' || e.key==='R'){revealAll();}
-  if(e.key==='s' || e.key==='S'){document.querySelectorAll('.solution').forEach(el=>el.classList.toggle('hidden'));}
-  if(e.key==='n' || e.key==='N'){startSession();}
-}
-window.addEventListener('keydown', keybinds);
-
-function saveResult(id, obj){ const k = 'adelina-results'; const all = JSON.parse(localStorage.getItem(k)||'{}'); all[id]=obj; localStorage.setItem(k, JSON.stringify(all)); }
-function loadResult(id){ const k = 'adelina-results'; const all = JSON.parse(localStorage.getItem(k)||'{}'); return all[id]; }
-function allItems(){ return BANK[state.track]; }
-
-function updateStats(){
-  const all = allItems();
-  const k = 'adelina-results'; const store = JSON.parse(localStorage.getItem(k)||'{}');
-  const done = all.filter(it=>store[it.id]?.ok).length;
-  statsEl.innerHTML = `${done}/${all.length} correct in <span class="timer">${timerEl.textContent}</span>`;
-}
-
-// ——— Session control ———
-function startSession(){
-  state.track = document.getElementById('track').value;
-  state.mode = document.getElementById('mode').value;
-  const items = allItems();
-  renderSession(items);
-  stopTimer(); if(state.mode!=='practice') startTimer(); else {timerEl.textContent='00:00'}
-  updateStats();
-}
-
-// Buttons
- document.getElementById('startBtn').addEventListener('click', startSession);
- document.getElementById('revealAllBtn').addEventListener('click', revealAll);
- document.getElementById('hideAllBtn').addEventListener('click', hideAll);
-
-// First render
+$('#startBtn').addEventListener('click', startSession);
+$('#revealAllBtn').addEventListener('click', revealAll);
+$('#hideAllBtn').addEventListener('click', hideAll);
 renderSession([]);
 </script>
 </body>
